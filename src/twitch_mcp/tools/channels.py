@@ -1,0 +1,168 @@
+"""Channels MCP tools."""
+
+from typing import Callable
+
+from mcp.server import Server
+from mcp.types import Tool, TextContent
+
+from twitch_sdk import TwitchSDK
+from twitch_sdk.endpoints import channels
+from twitch_sdk.schemas.channels import (
+    AddVIPRequest,
+    GetChannelEditorsRequest,
+    GetChannelFollowersRequest,
+    GetChannelInfoRequest,
+    GetFollowedChannelsRequest,
+    GetVIPsRequest,
+    ModifyChannelInfoRequest,
+    RemoveVIPRequest,
+)
+
+
+def register_tools(server: Server, get_sdk: Callable[[], TwitchSDK]):
+    """Register channels tools with the MCP server."""
+
+    @server.list_tools()
+    async def list_tools():
+        return [
+            Tool(
+                name="twitch_get_channel_info",
+                description="Get information about one or more channels",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "broadcaster_id": {"type": "array", "items": {"type": "string"}, "description": "Broadcaster IDs"},
+                    },
+                    "required": ["broadcaster_id"],
+                },
+            ),
+            Tool(
+                name="twitch_modify_channel_info",
+                description="Modify channel information (title, game, etc.)",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "broadcaster_id": {"type": "string", "description": "The broadcaster's user ID"},
+                        "game_id": {"type": "string", "description": "The game/category ID"},
+                        "title": {"type": "string", "description": "The stream title"},
+                        "broadcaster_language": {"type": "string", "description": "Language code (e.g., 'en')"},
+                        "tags": {"type": "array", "items": {"type": "string"}, "description": "Stream tags"},
+                    },
+                    "required": ["broadcaster_id"],
+                },
+            ),
+            Tool(
+                name="twitch_get_channel_followers",
+                description="Get list of users that follow a channel",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "broadcaster_id": {"type": "string", "description": "The broadcaster's user ID"},
+                        "first": {"type": "integer", "description": "Max results (max 100)"},
+                    },
+                    "required": ["broadcaster_id"],
+                },
+            ),
+            Tool(
+                name="twitch_get_followed_channels",
+                description="Get channels that a user follows",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "user_id": {"type": "string", "description": "The user ID"},
+                        "broadcaster_id": {"type": "string", "description": "Check if following specific broadcaster"},
+                        "first": {"type": "integer", "description": "Max results (max 100)"},
+                    },
+                    "required": ["user_id"],
+                },
+            ),
+            Tool(
+                name="twitch_get_vips",
+                description="Get list of VIPs for a channel",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "broadcaster_id": {"type": "string", "description": "The broadcaster's user ID"},
+                        "first": {"type": "integer", "description": "Max results (max 100)"},
+                    },
+                    "required": ["broadcaster_id"],
+                },
+            ),
+            Tool(
+                name="twitch_add_vip",
+                description="Add a VIP to the channel",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "broadcaster_id": {"type": "string", "description": "The broadcaster's user ID"},
+                        "user_id": {"type": "string", "description": "The user ID to make VIP"},
+                    },
+                    "required": ["broadcaster_id", "user_id"],
+                },
+            ),
+            Tool(
+                name="twitch_remove_vip",
+                description="Remove a VIP from the channel",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "broadcaster_id": {"type": "string", "description": "The broadcaster's user ID"},
+                        "user_id": {"type": "string", "description": "The user ID to remove as VIP"},
+                    },
+                    "required": ["broadcaster_id", "user_id"],
+                },
+            ),
+        ]
+
+    @server.call_tool()
+    async def call_tool(name: str, arguments: dict):
+        sdk = get_sdk()
+
+        if name == "twitch_get_channel_info":
+            params = GetChannelInfoRequest(**arguments)
+            result = await channels.get_channel_information(sdk.http, params)
+            info = []
+            for ch in result.data:
+                info.append(
+                    f"- {ch.broadcaster_name}\n"
+                    f"  Title: {ch.title}\n"
+                    f"  Game: {ch.game_name}\n"
+                    f"  Language: {ch.broadcaster_language}\n"
+                    f"  Tags: {', '.join(ch.tags)}"
+                )
+            return [TextContent(type="text", text="\n".join(info) if info else "No channels found")]
+
+        elif name == "twitch_modify_channel_info":
+            params = ModifyChannelInfoRequest(**arguments)
+            await channels.modify_channel_information(sdk.http, params)
+            return [TextContent(type="text", text="Channel information updated successfully")]
+
+        elif name == "twitch_get_channel_followers":
+            params = GetChannelFollowersRequest(**arguments)
+            result = await channels.get_channel_followers(sdk.http, params)
+            followers = [f"- {f.user_name} (since {f.followed_at.date()})" for f in result.data]
+            return [TextContent(type="text", text=f"Followers ({result.total}):\n" + "\n".join(followers[:50]))]
+
+        elif name == "twitch_get_followed_channels":
+            params = GetFollowedChannelsRequest(**arguments)
+            result = await channels.get_followed_channels(sdk.http, params)
+            followed = [f"- {f.broadcaster_name}" for f in result.data]
+            return [TextContent(type="text", text=f"Following:\n" + "\n".join(followed))]
+
+        elif name == "twitch_get_vips":
+            params = GetVIPsRequest(**arguments)
+            result = await channels.get_vips(sdk.http, params)
+            vips = [f"- {v.user_name}" for v in result.data]
+            return [TextContent(type="text", text=f"VIPs:\n" + "\n".join(vips) if vips else "No VIPs")]
+
+        elif name == "twitch_add_vip":
+            params = AddVIPRequest(**arguments)
+            await channels.add_channel_vip(sdk.http, params)
+            return [TextContent(type="text", text="VIP added successfully")]
+
+        elif name == "twitch_remove_vip":
+            params = RemoveVIPRequest(**arguments)
+            await channels.remove_channel_vip(sdk.http, params)
+            return [TextContent(type="text", text="VIP removed successfully")]
+
+        raise ValueError(f"Unknown tool: {name}")

@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "twitch-mcp"
+version = "0.1.0"
+description = "MCP server exposing Twitch SDK as tools for AI assistants"
+authors = ["ldraney"]
+readme = "README.md"
+packages = [{include = "twitch_mcp", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+twitch-sdk = {path = "../twitch-sdk", develop = true}
+mcp = "^1.0.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.0"
+pytest-asyncio = "^0.23"
+
+[tool.poetry.scripts]
+twitch-mcp = "twitch_mcp.server:main"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
