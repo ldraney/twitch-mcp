@@ -12,6 +12,7 @@ from twitch_sdk.schemas.users import (
     GetUserBlockListRequest,
     GetUsersRequest,
     UnblockUserRequest,
+    UpdateUserExtensionsRequest,
     UpdateUserRequest,
 )
 
@@ -79,6 +80,35 @@ def register_tools(server: Server, get_sdk: Callable[[], TwitchSDK]):
                     "required": ["target_user_id"],
                 },
             ),
+            Tool(
+                name="twitch_get_user_extensions",
+                description="Get list of extensions the authenticated user has installed",
+                inputSchema={
+                    "type": "object",
+                    "properties": {},
+                },
+            ),
+            Tool(
+                name="twitch_get_user_active_extensions",
+                description="Get user's currently active extensions",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "user_id": {"type": "string", "description": "User ID (omit for authenticated user)"},
+                    },
+                },
+            ),
+            Tool(
+                name="twitch_update_user_extensions",
+                description="Update user's active extensions configuration",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "data": {"type": "object", "description": "Extension config with panel, overlay, component objects"},
+                    },
+                    "required": ["data"],
+                },
+            ),
         ]
 
     @server.call_tool()
@@ -119,5 +149,28 @@ def register_tools(server: Server, get_sdk: Callable[[], TwitchSDK]):
             params = UnblockUserRequest(**arguments)
             await users.unblock_user(sdk.http, params)
             return [TextContent(type="text", text="User unblocked")]
+
+        elif name == "twitch_get_user_extensions":
+            result = await users.get_user_extensions(sdk.http)
+            exts = [f"- {e.name} ({e.id}) v{e.version}" for e in result.data]
+            return [TextContent(type="text", text=f"Installed extensions:\n" + "\n".join(exts) if exts else "No extensions installed")]
+
+        elif name == "twitch_get_user_active_extensions":
+            user_id = arguments.get("user_id")
+            result = await users.get_user_active_extensions(sdk.http, user_id)
+            # Parse the active extensions response
+            data = result.get("data", {})
+            active = []
+            for slot_type in ["panel", "overlay", "component"]:
+                slots = data.get(slot_type, {})
+                for slot_id, ext in slots.items():
+                    if ext.get("active"):
+                        active.append(f"- {slot_type}/{slot_id}: {ext.get('name', 'Unknown')}")
+            return [TextContent(type="text", text=f"Active extensions:\n" + "\n".join(active) if active else "No active extensions")]
+
+        elif name == "twitch_update_user_extensions":
+            params = UpdateUserExtensionsRequest(**arguments)
+            result = await users.update_user_extensions(sdk.http, params)
+            return [TextContent(type="text", text="User extensions updated")]
 
         raise ValueError(f"Unknown tool: {name}")

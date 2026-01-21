@@ -8,9 +8,14 @@ from mcp.types import Tool, TextContent
 from twitch_sdk import TwitchSDK
 from twitch_sdk.endpoints import eventsub
 from twitch_sdk.schemas.eventsub import (
+    CreateConduitRequest,
     CreateEventSubSubscriptionRequest,
+    DeleteConduitRequest,
     DeleteEventSubSubscriptionRequest,
+    GetConduitShardsRequest,
     GetEventSubSubscriptionsRequest,
+    UpdateConduitRequest,
+    UpdateConduitShardsRequest,
 )
 
 
@@ -57,6 +62,72 @@ def register_tools(server: Server, get_sdk: Callable[[], TwitchSDK]):
                     "required": ["id"],
                 },
             ),
+            Tool(
+                name="twitch_get_conduits",
+                description="Get list of conduits for event distribution",
+                inputSchema={
+                    "type": "object",
+                    "properties": {},
+                },
+            ),
+            Tool(
+                name="twitch_create_conduit",
+                description="Create a conduit for distributing events across shards",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "shard_count": {"type": "integer", "description": "Number of shards (min 1)"},
+                    },
+                    "required": ["shard_count"],
+                },
+            ),
+            Tool(
+                name="twitch_update_conduit",
+                description="Update a conduit's shard count",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "id": {"type": "string", "description": "Conduit ID"},
+                        "shard_count": {"type": "integer", "description": "New shard count (min 1)"},
+                    },
+                    "required": ["id", "shard_count"],
+                },
+            ),
+            Tool(
+                name="twitch_delete_conduit",
+                description="Delete a conduit",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "id": {"type": "string", "description": "Conduit ID to delete"},
+                    },
+                    "required": ["id"],
+                },
+            ),
+            Tool(
+                name="twitch_get_conduit_shards",
+                description="Get shards for a conduit",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "conduit_id": {"type": "string", "description": "Conduit ID"},
+                        "status": {"type": "string", "description": "Filter by status"},
+                    },
+                    "required": ["conduit_id"],
+                },
+            ),
+            Tool(
+                name="twitch_update_conduit_shards",
+                description="Update conduit shards (configure transport for each shard)",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "conduit_id": {"type": "string", "description": "Conduit ID"},
+                        "shards": {"type": "array", "description": "Array of shard configs with id and transport"},
+                    },
+                    "required": ["conduit_id", "shards"],
+                },
+            ),
         ]
 
     @server.call_tool()
@@ -81,5 +152,38 @@ def register_tools(server: Server, get_sdk: Callable[[], TwitchSDK]):
             params = DeleteEventSubSubscriptionRequest(**arguments)
             await eventsub.delete_eventsub_subscription(sdk.http, params)
             return [TextContent(type="text", text="Subscription deleted")]
+
+        elif name == "twitch_get_conduits":
+            result = await eventsub.get_conduits(sdk.http)
+            conduits = [f"- ID: {c.id} (shards: {c.shard_count})" for c in result.data]
+            return [TextContent(type="text", text=f"Conduits:\n" + "\n".join(conduits) if conduits else "No conduits")]
+
+        elif name == "twitch_create_conduit":
+            params = CreateConduitRequest(**arguments)
+            result = await eventsub.create_conduit(sdk.http, params)
+            conduit = result.data[0]
+            return [TextContent(type="text", text=f"Conduit created:\nID: {conduit.id}\nShards: {conduit.shard_count}")]
+
+        elif name == "twitch_update_conduit":
+            params = UpdateConduitRequest(**arguments)
+            result = await eventsub.update_conduit(sdk.http, params)
+            conduit = result.data[0]
+            return [TextContent(type="text", text=f"Conduit updated: {conduit.shard_count} shards")]
+
+        elif name == "twitch_delete_conduit":
+            params = DeleteConduitRequest(**arguments)
+            await eventsub.delete_conduit(sdk.http, params)
+            return [TextContent(type="text", text="Conduit deleted")]
+
+        elif name == "twitch_get_conduit_shards":
+            params = GetConduitShardsRequest(**arguments)
+            result = await eventsub.get_conduit_shards(sdk.http, params)
+            shards = [f"- Shard {s.id}: {s.status} ({s.transport.method})" for s in result.data]
+            return [TextContent(type="text", text=f"Conduit Shards:\n" + "\n".join(shards) if shards else "No shards")]
+
+        elif name == "twitch_update_conduit_shards":
+            params = UpdateConduitShardsRequest(**arguments)
+            result = await eventsub.update_conduit_shards(sdk.http, params)
+            return [TextContent(type="text", text=f"Updated {len(result.data)} shards")]
 
         raise ValueError(f"Unknown tool: {name}")

@@ -112,6 +112,17 @@ def register_tools(server: Server, get_sdk: Callable[[], TwitchSDK]):
                     "required": ["broadcaster_id", "user_id"],
                 },
             ),
+            Tool(
+                name="twitch_get_channel_editors",
+                description="Get list of channel editors",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "broadcaster_id": {"type": "string", "description": "The broadcaster's user ID"},
+                    },
+                    "required": ["broadcaster_id"],
+                },
+            ),
         ]
 
     @server.call_tool()
@@ -164,5 +175,11 @@ def register_tools(server: Server, get_sdk: Callable[[], TwitchSDK]):
             params = RemoveVIPRequest(**arguments)
             await channels.remove_channel_vip(sdk.http, params)
             return [TextContent(type="text", text="VIP removed successfully")]
+
+        elif name == "twitch_get_channel_editors":
+            params = GetChannelEditorsRequest(**arguments)
+            result = await channels.get_channel_editors(sdk.http, params)
+            editors = [f"- {e.user_name} (since {e.created_at.date()})" for e in result.data]
+            return [TextContent(type="text", text=f"Channel Editors:\n" + "\n".join(editors) if editors else "No editors")]
 
         raise ValueError(f"Unknown tool: {name}")

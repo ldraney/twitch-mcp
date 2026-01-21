@@ -10,6 +10,7 @@ from twitch_sdk.endpoints import schedule
 from twitch_sdk.schemas.schedule import (
     CreateScheduleSegmentRequest,
     DeleteScheduleSegmentRequest,
+    GetScheduleICalendarRequest,
     GetScheduleRequest,
     UpdateScheduleRequest,
     UpdateScheduleSegmentRequest,
@@ -78,6 +79,35 @@ def register_tools(server: Server, get_sdk: Callable[[], TwitchSDK]):
                     "required": ["broadcaster_id", "id"],
                 },
             ),
+            Tool(
+                name="twitch_get_schedule_icalendar",
+                description="Get a broadcaster's schedule as iCalendar data",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "broadcaster_id": {"type": "string", "description": "The broadcaster's user ID"},
+                    },
+                    "required": ["broadcaster_id"],
+                },
+            ),
+            Tool(
+                name="twitch_update_schedule_segment",
+                description="Update a scheduled stream segment",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "broadcaster_id": {"type": "string", "description": "The broadcaster's user ID"},
+                        "id": {"type": "string", "description": "Segment ID to update"},
+                        "start_time": {"type": "string", "description": "New start time (RFC3339)"},
+                        "timezone": {"type": "string", "description": "Timezone (e.g., America/New_York)"},
+                        "duration": {"type": "integer", "description": "Duration in minutes (30-1440)"},
+                        "is_canceled": {"type": "boolean", "description": "Cancel this segment"},
+                        "category_id": {"type": "string", "description": "Game/category ID"},
+                        "title": {"type": "string", "description": "Stream title (max 140 chars)"},
+                    },
+                    "required": ["broadcaster_id", "id"],
+                },
+            ),
         ]
 
     @server.call_tool()
@@ -108,5 +138,16 @@ def register_tools(server: Server, get_sdk: Callable[[], TwitchSDK]):
             params = DeleteScheduleSegmentRequest(**arguments)
             await schedule.delete_channel_stream_schedule_segment(sdk.http, params)
             return [TextContent(type="text", text="Schedule segment deleted")]
+
+        elif name == "twitch_get_schedule_icalendar":
+            params = GetScheduleICalendarRequest(**arguments)
+            result = await schedule.get_channel_icalendar(sdk.http, params)
+            # Result is iCalendar text data
+            return [TextContent(type="text", text=f"iCalendar data:\n{result[:2000]}..." if len(str(result)) > 2000 else f"iCalendar data:\n{result}")]
+
+        elif name == "twitch_update_schedule_segment":
+            params = UpdateScheduleSegmentRequest(**arguments)
+            result = await schedule.update_channel_stream_schedule_segment(sdk.http, params)
+            return [TextContent(type="text", text="Schedule segment updated")]
 
         raise ValueError(f"Unknown tool: {name}")

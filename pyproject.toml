@@ -17,6 +17,7 @@ pytest-asyncio = "^0.23"
 
 [tool.poetry.scripts]
 twitch-mcp = "twitch_mcp.server:main"
+eventsub-listen = "twitch_mcp.eventsub.listener:main"
 
 [build-system]
 requires = ["poetry-core"]

@@ -18,9 +18,13 @@ from twitch_sdk.schemas.moderation import (
     GetBlockedTermsRequest,
     GetModeratorsRequest,
     GetShieldModeStatusRequest,
+    GetUnbanRequestsRequest,
+    ManageHeldAutoModMessageRequest,
     RemoveBlockedTermRequest,
     RemoveModeratorRequest,
+    ResolveUnbanRequestRequest,
     UnbanUserRequest,
+    UpdateAutoModSettingsRequest,
     UpdateShieldModeStatusRequest,
     WarnUserRequest,
 )
@@ -186,6 +190,95 @@ def register_tools(server: Server, get_sdk: Callable[[], TwitchSDK]):
                     "required": ["broadcaster_id", "moderator_id", "is_active"],
                 },
             ),
+            Tool(
+                name="twitch_get_unban_requests",
+                description="Get pending unban requests for a channel",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "broadcaster_id": {"type": "string", "description": "The broadcaster's user ID"},
+                        "moderator_id": {"type": "string", "description": "The moderator's user ID"},
+                        "status": {"type": "string", "description": "Filter by status: pending, approved, denied, acknowledged, canceled"},
+                        "user_id": {"type": "string", "description": "Filter by user ID"},
+                        "first": {"type": "integer", "description": "Max results (max 100)"},
+                    },
+                    "required": ["broadcaster_id", "moderator_id"],
+                },
+            ),
+            Tool(
+                name="twitch_resolve_unban_request",
+                description="Approve or deny an unban request",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "broadcaster_id": {"type": "string", "description": "The broadcaster's user ID"},
+                        "moderator_id": {"type": "string", "description": "The moderator's user ID"},
+                        "unban_request_id": {"type": "string", "description": "The unban request ID"},
+                        "status": {"type": "string", "description": "approved or denied"},
+                        "resolution_text": {"type": "string", "description": "Optional resolution message"},
+                    },
+                    "required": ["broadcaster_id", "moderator_id", "unban_request_id", "status"],
+                },
+            ),
+            Tool(
+                name="twitch_remove_blocked_term",
+                description="Remove a blocked term from a channel",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "broadcaster_id": {"type": "string", "description": "The broadcaster's user ID"},
+                        "moderator_id": {"type": "string", "description": "The moderator's user ID"},
+                        "id": {"type": "string", "description": "The blocked term ID to remove"},
+                    },
+                    "required": ["broadcaster_id", "moderator_id", "id"],
+                },
+            ),
+            Tool(
+                name="twitch_get_automod_settings",
+                description="Get AutoMod settings for a channel",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "broadcaster_id": {"type": "string", "description": "The broadcaster's user ID"},
+                        "moderator_id": {"type": "string", "description": "The moderator's user ID"},
+                    },
+                    "required": ["broadcaster_id", "moderator_id"],
+                },
+            ),
+            Tool(
+                name="twitch_update_automod_settings",
+                description="Update AutoMod settings for a channel (levels 0-4)",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "broadcaster_id": {"type": "string", "description": "The broadcaster's user ID"},
+                        "moderator_id": {"type": "string", "description": "The moderator's user ID"},
+                        "overall_level": {"type": "integer", "description": "Overall level (0-4), overrides individual settings"},
+                        "aggression": {"type": "integer", "description": "Aggression filter level (0-4)"},
+                        "bullying": {"type": "integer", "description": "Bullying filter level (0-4)"},
+                        "disability": {"type": "integer", "description": "Disability filter level (0-4)"},
+                        "misogyny": {"type": "integer", "description": "Misogyny filter level (0-4)"},
+                        "race_ethnicity_or_religion": {"type": "integer", "description": "Race/ethnicity/religion filter (0-4)"},
+                        "sex_based_terms": {"type": "integer", "description": "Sex-based terms filter (0-4)"},
+                        "sexuality_sex_or_gender": {"type": "integer", "description": "Sexuality/gender filter (0-4)"},
+                        "swearing": {"type": "integer", "description": "Swearing filter level (0-4)"},
+                    },
+                    "required": ["broadcaster_id", "moderator_id"],
+                },
+            ),
+            Tool(
+                name="twitch_manage_held_automod_message",
+                description="Allow or deny a message held by AutoMod",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "user_id": {"type": "string", "description": "The moderator's user ID"},
+                        "msg_id": {"type": "string", "description": "The held message ID"},
+                        "action": {"type": "string", "description": "ALLOW or DENY"},
+                    },
+                    "required": ["user_id", "msg_id", "action"],
+                },
+            ),
         ]
 
     @server.call_tool()
@@ -263,5 +356,46 @@ def register_tools(server: Server, get_sdk: Callable[[], TwitchSDK]):
             result = await moderation.update_shield_mode_status(sdk.http, params)
             status = result.data[0]
             return [TextContent(type="text", text=f"Shield mode {'enabled' if status.is_active else 'disabled'}")]
+
+        elif name == "twitch_get_unban_requests":
+            params = GetUnbanRequestsRequest(**arguments)
+            result = await moderation.get_unban_requests(sdk.http, params)
+            requests = [f"- {r.user_name}: {r.text} ({r.status})" for r in result.data]
+            return [TextContent(type="text", text=f"Unban requests:\n" + "\n".join(requests) if requests else "No unban requests")]
+
+        elif name == "twitch_resolve_unban_request":
+            params = ResolveUnbanRequestRequest(**arguments)
+            result = await moderation.resolve_unban_request(sdk.http, params)
+            req = result.data[0]
+            return [TextContent(type="text", text=f"Unban request {req.status}: {req.user_name}")]
+
+        elif name == "twitch_remove_blocked_term":
+            params = RemoveBlockedTermRequest(**arguments)
+            await moderation.remove_blocked_term(sdk.http, params)
+            return [TextContent(type="text", text="Blocked term removed")]
+
+        elif name == "twitch_get_automod_settings":
+            params = GetAutoModSettingsRequest(**arguments)
+            result = await moderation.get_automod_settings(sdk.http, params)
+            s = result.data[0]
+            text = (f"AutoMod Settings:\n"
+                    f"Overall: {s.overall_level or 'custom'}\n"
+                    f"Aggression: {s.aggression}, Bullying: {s.bullying}\n"
+                    f"Disability: {s.disability}, Misogyny: {s.misogyny}\n"
+                    f"Race/Religion: {s.race_ethnicity_or_religion}\n"
+                    f"Sex terms: {s.sex_based_terms}, Sexuality: {s.sexuality_sex_or_gender}\n"
+                    f"Swearing: {s.swearing}")
+            return [TextContent(type="text", text=text)]
+
+        elif name == "twitch_update_automod_settings":
+            params = UpdateAutoModSettingsRequest(**arguments)
+            result = await moderation.update_automod_settings(sdk.http, params)
+            return [TextContent(type="text", text="AutoMod settings updated")]
+
+        elif name == "twitch_manage_held_automod_message":
+            params = ManageHeldAutoModMessageRequest(**arguments)
+            await moderation.manage_held_automod_message(sdk.http, params)
+            action = arguments.get("action", "processed")
+            return [TextContent(type="text", text=f"Message {action.lower()}ed")]
 
         raise ValueError(f"Unknown tool: {name}")

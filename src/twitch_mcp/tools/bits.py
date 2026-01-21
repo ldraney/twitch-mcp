@@ -7,7 +7,7 @@ from mcp.types import Tool, TextContent
 
 from twitch_sdk import TwitchSDK
 from twitch_sdk.endpoints import bits
-from twitch_sdk.schemas.bits import GetBitsLeaderboardRequest, GetCheermotesRequest
+from twitch_sdk.schemas.bits import GetBitsLeaderboardRequest, GetCheermotesRequest, GetExtensionTransactionsRequest
 
 
 def register_tools(server: Server, get_sdk: Callable[[], TwitchSDK]):
@@ -38,6 +38,19 @@ def register_tools(server: Server, get_sdk: Callable[[], TwitchSDK]):
                     },
                 },
             ),
+            Tool(
+                name="twitch_get_extension_transactions",
+                description="Get extension transactions (for extension developers)",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "extension_id": {"type": "string", "description": "Extension ID"},
+                        "id": {"type": "array", "items": {"type": "string"}, "description": "Specific transaction IDs"},
+                        "first": {"type": "integer", "description": "Max results (max 100)"},
+                    },
+                    "required": ["extension_id"],
+                },
+            ),
         ]
 
     @server.call_tool()
@@ -55,5 +68,11 @@ def register_tools(server: Server, get_sdk: Callable[[], TwitchSDK]):
             result = await bits.get_cheermotes(sdk.http, params)
             cheermotes = [f"- {c.prefix}" for c in result.data]
             return [TextContent(type="text", text=f"Cheermotes:\n" + "\n".join(cheermotes))]
+
+        elif name == "twitch_get_extension_transactions":
+            params = GetExtensionTransactionsRequest(**arguments)
+            result = await bits.get_extension_transactions(sdk.http, params)
+            txs = [f"- {t.id}: {t.user_name} ({t.product_type})" for t in result.data]
+            return [TextContent(type="text", text=f"Extension Transactions:\n" + "\n".join(txs) if txs else "No transactions")]
 
         raise ValueError(f"Unknown tool: {name}")
