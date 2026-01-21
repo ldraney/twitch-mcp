@@ -1,46 +1,52 @@
 # twitch-mcp
 
+[![PyPI](https://img.shields.io/pypi/v/twitch-mcp)](https://pypi.org/project/twitch-mcp/)
+
 MCP server exposing the Twitch SDK as tools for AI assistants like Claude Code.
 
-## Installation
+## Quick Start
+
+### 1. Install
 
 ```bash
 pip install twitch-mcp
 ```
 
-## Configuration
+### 2. Setup Credentials
 
-Add to your `~/.mcp.json`:
+Create `~/.twitch-secrets/.env`:
+
+```bash
+mkdir -p ~/.twitch-secrets
+cat > ~/.twitch-secrets/.env << 'EOF'
+TWITCH_CLIENT_ID=your_client_id
+TWITCH_CLIENT_SECRET=your_client_secret
+TWITCH_ACCESS_TOKEN=your_access_token
+TWITCH_REFRESH_TOKEN=your_refresh_token
+EOF
+```
+
+Get credentials from:
+- **Client ID/Secret**: [Twitch Developer Console](https://dev.twitch.tv/console/apps)
+- **Access/Refresh Tokens**: Use [Twitch CLI](https://dev.twitch.tv/docs/cli/) or an OAuth app
+
+### 3. Configure Claude Code
+
+Add to `~/.claude/mcp.json`:
 
 ```json
 {
   "mcpServers": {
     "twitch": {
-      "command": "twitch-mcp",
-      "env": {
-        "TWITCH_ENV_FILE": "~/twitch-secrets/.env"
-      }
+      "command": "twitch-mcp"
     }
   }
 }
 ```
 
-Or with Poetry:
+### 4. Restart Claude Code
 
-```json
-{
-  "mcpServers": {
-    "twitch": {
-      "command": "poetry",
-      "args": ["run", "twitch-mcp"],
-      "cwd": "/path/to/twitch-mcp",
-      "env": {
-        "TWITCH_ENV_FILE": "~/twitch-secrets/.env"
-      }
-    }
-  }
-}
-```
+Run `/mcp` to verify the twitch server is connected.
 
 ## Available Tools
 
