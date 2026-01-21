@@ -1065,38 +1065,34 @@ name = "twitch-client"
 version = "0.1.0"
 description = "Twitch OAuth client with token management and authenticated HTTP requests"
 optional = false
-python-versions = "^3.10"
+python-versions = "<4.0,>=3.10"
 groups = ["main"]
-files = []
-develop = true
+files = [
+    {file = "twitch_client-0.1.0-py3-none-any.whl", hash = "sha256:b1225304d931323c4d9ed08561ec7f290f81b68abfb18135a3a5efa7685a8fb2"},
+    {file = "twitch_client-0.1.0.tar.gz", hash = "sha256:51b7895b4dd9faf504d2fd07dfb4be4235083a7c5c484210eb73a18908cc6c2b"},
+]
 
 [package.dependencies]
-httpx = "^0.27.0"
-pydantic = "^2.0"
-pydantic-settings = "^2.0"
-
-[package.source]
-type = "directory"
-url = "../twitch-client"
+httpx = ">=0.27.0,<0.28.0"
+pydantic = ">=2.0,<3.0"
+pydantic-settings = ">=2.0,<3.0"
 
 [[package]]
 name = "twitch-sdk"
 version = "0.1.0"
 description = "Complete Twitch Helix API SDK with Pydantic validation for 170+ endpoints"
 optional = false
-python-versions = "^3.10"
+python-versions = "<4.0,>=3.10"
 groups = ["main"]
-files = []
-develop = true
+files = [
+    {file = "twitch_sdk-0.1.0-py3-none-any.whl", hash = "sha256:ca8de46d89aacd8cb3a5eec5364cb7f51af9ca1e4e6bce253b14af39371a7439"},
+    {file = "twitch_sdk-0.1.0.tar.gz", hash = "sha256:3e183d78b3a6e1bd35f798f41792c6263c6478811de4193ca4b44cc2f2ce93a0"},
+]
 
 [package.dependencies]
-pydantic = "^2.0"
-twitch-client = {path = "../twitch-client", develop = true}
-websockets = "^12.0"
-
-[package.source]
-type = "directory"
-url = "../twitch-sdk"
+pydantic = ">=2.0,<3.0"
+twitch-client = ">=0.1.0,<0.2.0"
+websockets = ">=12.0,<13.0"
 
 [[package]]
 name = "typing-extensions"
@@ -1232,4 +1228,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "0d7acf03908040dd9c790ec589bf1e375de33f77ebfba2b81ae1314e4c6a1186"
+content-hash = "2d607a5a0547e24adf79fe0df18fa62c3697800541e8967dc742271d0b1be884"
