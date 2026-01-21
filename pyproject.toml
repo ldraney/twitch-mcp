@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "twitch-mcp"
-version = "0.1.0"
+version = "0.1.1"
 description = "MCP server exposing Twitch SDK as tools for AI assistants"
 authors = ["ldraney"]
 readme = "README.md"
