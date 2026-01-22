@@ -1,23 +1,25 @@
 # QA Test Matrix - Twitch MCP Tools
 
 Total Tools: 110
-**Test Date**: 2026-01-21
+**Test Date**: 2026-01-22
 **Test Method**: Direct SDK calls (MCP server not connected to Claude session)
 
 ## Legend
-- Status: ⬜ Not tested | ✅ Passed | ❌ Failed (SDK bug) | ⏭️ Skipped (missing scope/special requirement)
+- Status: ⬜ Not tested | ✅ Passed | 🔧 Fixed (needs retest) | ⏭️ Skipped (missing scope/special requirement)
 - Auth: Required OAuth scopes
 
 ## Summary
 
-| Category | Passed | Failed | Skipped | Total |
-|----------|--------|--------|---------|-------|
-| Public Endpoints | 9 | 1 | 0 | 10 |
-| Channel Read | 2 | 0 | 8 | 10 |
-| Live Stream Ops | 1 | 4 | 2 | 7 |
-| Channel Points | 0 | 0 | 4 | 4 |
-| EventSub | 1 | 0 | 5 | 6 |
-| Other | 0 | 4 | 10 | 14 |
+| Category | Passed | Fixed | Skipped | Not Tested | Total |
+|----------|--------|-------|---------|------------|-------|
+| Public Endpoints | 9 | 1 | 0 | 0 | 10 |
+| Channel Read | 2 | 1 | 7 | 0 | 10 |
+| Live Stream Ops | 1 | 4 | 2 | 0 | 7 |
+| Channel Points | 0 | 0 | 4 | 2 | 6 |
+| EventSub | 1 | 0 | 5 | 3 | 9 |
+| Other | 0 | 4 | 10 | 37 | 51 |
+
+**SDK Bug Fixes**: All 10 SDK bugs fixed in commit `a5aedd5` (2026-01-22)
 
 ---
 
@@ -60,7 +62,7 @@ Total Tools: 110
 | Tool | Status | Auth Scope | Notes |
 |------|--------|------------|-------|
 | twitch_get_channel_info | ✅ | - | Public - Got channel: L_dray |
-| twitch_modify_channel_info | ❌ | channel:manage:broadcast | SDK endpoint missing |
+| twitch_modify_channel_info | 🔧 | channel:manage:broadcast | Fixed: added `modify_channel_info` alias |
 | twitch_get_channel_followers | ✅ | moderator:read:followers | 12 followers |
 | twitch_get_followed_channels | ⬜ | user:read:follows | Not tested |
 | twitch_get_vips | ⏭️ | channel:read:vips | Missing scope |
@@ -79,11 +81,11 @@ Total Tools: 110
 
 | Tool | Status | Auth Scope | Notes |
 |------|--------|------------|-------|
-| twitch_send_chat_message | ❌ | user:write:chat | SDK schema missing (SendChatMessageRequest) |
+| twitch_send_chat_message | 🔧 | user:write:chat | Fixed: added `SendChatMessageRequest` alias |
 | twitch_get_chat_settings | ✅ | - | Public - slow_mode: False |
 | twitch_update_chat_settings | ⬜ | moderator:manage:chat_settings | Not tested |
 | twitch_get_chatters | ⏭️ | moderator:read:chatters | Missing scope |
-| twitch_send_chat_announcement | ❌ | moderator:manage:announcements | SDK endpoint missing |
+| twitch_send_chat_announcement | 🔧 | moderator:manage:announcements | Fixed: added `send_announcement` alias |
 | twitch_send_shoutout | ⬜ | moderator:manage:shoutouts | Not tested |
 | twitch_get_user_emotes | ⬜ | user:read:emotes | Not tested |
 
@@ -119,7 +121,7 @@ Total Tools: 110
 
 | Tool | Status | Auth Scope | Notes |
 |------|--------|------------|-------|
-| twitch_get_goals | ❌ | channel:read:goals | SDK endpoint missing |
+| twitch_get_goals | 🔧 | channel:read:goals | Fixed: added `get_goals` alias |
 
 ## Guest Star Module (12 tools)
 
@@ -142,7 +144,7 @@ Total Tools: 110
 
 | Tool | Status | Auth Scope | Notes |
 |------|--------|------------|-------|
-| twitch_get_hype_train | ❌ | channel:read:hype_train | SDK schema missing (GetHypeTrainRequest) |
+| twitch_get_hype_train | 🔧 | channel:read:hype_train | Fixed: added `GetHypeTrainRequest` alias |
 
 ## Moderation Module (18 tools)
 
@@ -171,7 +173,7 @@ Total Tools: 110
 
 | Tool | Status | Auth Scope | Notes |
 |------|--------|------------|-------|
-| twitch_create_poll | ❌ | channel:manage:polls | SDK bug: PollChoice requires `id` field for creation |
+| twitch_create_poll | 🔧 | channel:manage:polls | Fixed: `PollChoice.id` now optional |
 | twitch_get_polls | ⬜ | channel:read:polls | Not tested (depends on create) |
 | twitch_end_poll | ⬜ | channel:manage:polls | Not tested (depends on create) |
 
@@ -179,7 +181,7 @@ Total Tools: 110
 
 | Tool | Status | Auth Scope | Notes |
 |------|--------|------------|-------|
-| twitch_create_prediction | ❌ | channel:manage:predictions | SDK bug: PredictionOutcome requires `id` and `color` fields for creation |
+| twitch_create_prediction | 🔧 | channel:manage:predictions | Fixed: `PredictionOutcome.id/color` now optional |
 | twitch_get_predictions | ⬜ | channel:read:predictions | Not tested (depends on create) |
 | twitch_end_prediction | ⬜ | channel:manage:predictions | Not tested (depends on create) |
 
@@ -194,11 +196,11 @@ Total Tools: 110
 
 | Tool | Status | Auth Scope | Notes |
 |------|--------|------------|-------|
-| twitch_get_channel_schedule | ❌ | - | SDK schema missing (GetChannelScheduleRequest) |
+| twitch_get_channel_schedule | 🔧 | - | Fixed: added `GetChannelScheduleRequest` alias |
 | twitch_update_channel_schedule | ⬜ | channel:manage:schedule | Not tested |
 | twitch_create_schedule_segment | ⬜ | channel:manage:schedule | Not tested |
 | twitch_delete_schedule_segment | ⬜ | channel:manage:schedule | Not tested |
-| twitch_get_schedule_icalendar | ❌ | - | SDK bug: expects model but gets string |
+| twitch_get_schedule_icalendar | 🔧 | - | Fixed: added type safety for string response |
 | twitch_update_schedule_segment | ⬜ | channel:manage:schedule | Not tested |
 
 ## Search Module (2 tools)
@@ -206,7 +208,7 @@ Total Tools: 110
 | Tool | Status | Auth Scope | Notes |
 |------|--------|------------|-------|
 | twitch_search_categories | ✅ | - | Public - Found categories for "minecraft" |
-| twitch_search_channels | ❌ | - | SDK bug: `started_at` validation fails for offline channels (empty string) |
+| twitch_search_channels | 🔧 | - | Fixed: empty string → None validator for `started_at` |
 
 ## Streams Module (3 tools)
 
@@ -258,20 +260,22 @@ Total Tools: 110
 
 ---
 
-## SDK Bugs Found
+## SDK Bugs Found & Fixed ✅
 
-| Bug | Severity | File | Issue |
-|-----|----------|------|-------|
-| search_channels validation | High | schemas/search.py | `started_at` field fails for offline channels (empty string instead of null) |
-| send_chat_message missing | High | schemas/chat.py | `SendChatMessageRequest` not exported/defined |
-| send_announcement missing | High | endpoints/chat.py | `send_announcement` function missing |
-| modify_channel_info missing | High | endpoints/channels.py | `modify_channel_info` function missing |
-| PollChoice requires id | High | schemas/polls.py | `id` field required but should be optional for creation |
-| PredictionOutcome requires id/color | High | schemas/predictions.py | `id` and `color` required but should be optional for creation |
-| get_channel_schedule schema | Medium | schemas/schedule.py | `GetChannelScheduleRequest` missing |
-| get_schedule_icalendar | Medium | endpoints/schedule.py | Returns string but code expects model |
-| get_goals missing | Medium | endpoints/goals.py | `get_goals` function missing |
-| get_hype_train schema | Medium | schemas/hype_train.py | `GetHypeTrainRequest` missing |
+All 10 bugs fixed in twitch-sdk commit `a5aedd5` (2026-01-22).
+
+| Bug | Severity | File | Fix Applied |
+|-----|----------|------|-------------|
+| search_channels validation | High | schemas/search.py | ✅ Added `@field_validator` to convert empty string → None |
+| send_chat_message missing | High | schemas/chat.py | ✅ Added `SendChatMessageRequest` alias |
+| send_announcement missing | High | endpoints/chat.py | ✅ Added `send_announcement` alias |
+| modify_channel_info missing | High | endpoints/channels.py | ✅ Added `modify_channel_info` alias |
+| PollChoice requires id | High | schemas/polls.py | ✅ Made `id` field optional |
+| PredictionOutcome requires id/color | High | schemas/predictions.py | ✅ Made `id` and `color` optional |
+| get_channel_schedule schema | Medium | schemas/schedule.py | ✅ Added `GetChannelScheduleRequest` alias |
+| get_schedule_icalendar | Medium | endpoints/schedule.py | ✅ Added type safety for string response |
+| get_goals missing | Medium | endpoints/goals.py | ✅ Added `get_goals` alias |
+| get_hype_train schema | Medium | schemas/hype_train.py | ✅ Added `GetHypeTrainRequest` alias |
 
 ## Missing OAuth Scopes
 
@@ -292,7 +296,8 @@ The current token is missing these scopes needed for full testing:
 
 ## Next Steps
 
-1. **Fix SDK bugs** - Address the 10 bugs identified above
-2. **Regenerate token** - Create new token with all required scopes
-3. **Retest** - Run full test suite after fixes
-4. **App token support** - Add app access token for conduit endpoints
+1. ~~**Fix SDK bugs**~~ ✅ All 10 bugs fixed (2026-01-22)
+2. **Retest fixed tools** - Run live API tests on 🔧 Fixed tools
+3. **Regenerate token** - Create new token with all required scopes
+4. **Full retest** - Run complete test suite with expanded scopes
+5. **App token support** - Add app access token for conduit endpoints
