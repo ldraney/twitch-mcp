@@ -1,11 +1,12 @@
 """Twitch MCP Server - Main entry point."""
 
 import asyncio
-import os
 from contextlib import asynccontextmanager
+from typing import Callable, Awaitable
 
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
+from mcp.types import Tool, TextContent
 
 from twitch_sdk import TwitchSDK
 
@@ -62,11 +63,15 @@ async def sdk_lifespan():
             _sdk = None
 
 
+# Type for tool handlers
+ToolHandler = Callable[[TwitchSDK, dict], Awaitable[list[TextContent]]]
+
+
 def create_server() -> Server:
     """Create and configure the MCP server."""
     server = Server("twitch-mcp")
 
-    # Register all tools
+    # Collect all tools and handlers from modules
     tool_modules = [
         ads,
         analytics,
@@ -95,8 +100,28 @@ def create_server() -> Server:
         whispers,
     ]
 
+    # Aggregate all tools and handlers
+    all_tools: list[Tool] = []
+    all_handlers: dict[str, ToolHandler] = {}
+
     for module in tool_modules:
-        module.register_tools(server, get_sdk)
+        all_tools.extend(module.get_tools())
+        all_handlers.update(module.get_handlers())
+
+    # Register single list_tools handler
+    @server.list_tools()
+    async def list_tools():
+        return all_tools
+
+    # Register single call_tool handler
+    @server.call_tool()
+    async def call_tool(name: str, arguments: dict):
+        handler = all_handlers.get(name)
+        if handler is None:
+            raise ValueError(f"Unknown tool: {name}")
+
+        sdk = get_sdk()
+        return await handler(sdk, arguments)
 
     return server
 
