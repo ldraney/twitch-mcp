@@ -1,8 +1,33 @@
 # twitch-mcp
 
 [![PyPI](https://img.shields.io/pypi/v/twitch-mcp)](https://pypi.org/project/twitch-mcp/)
+[![Python](https://img.shields.io/pypi/pyversions/twitch-mcp)](https://pypi.org/project/twitch-mcp/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-MCP server exposing the Twitch SDK as tools for AI assistants like Claude Code.
+> MCP server exposing 110+ Twitch API tools for AI assistants
+
+Turn your AI assistant into a Twitch streamer's best friend. This MCP server exposes the full Twitch Helix API as tools that Claude Code, Cursor, and other MCP-compatible assistants can use.
+
+## Features
+
+- **110+ Twitch Tools** - Full API coverage: chat, streams, moderation, polls, predictions, and more
+- **Real-time EventSub** - Subscribe to live Twitch events via WebSocket
+- **Pydantic Validation** - Type-safe requests with automatic validation
+- **Works with Any MCP Client** - Claude Code, Cursor, or any MCP-compatible assistant
+
+## Architecture
+
+```
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│   AI Assistant  │────▶│   twitch-mcp    │────▶│   Twitch API    │
+│  (Claude Code)  │     │   (MCP Server)  │     │    (Helix)      │
+└─────────────────┘     └────────┬────────┘     └─────────────────┘
+                                 │
+                        ┌────────▼────────┐
+                        │   twitch-sdk    │
+                        │ (Pydantic SDK)  │
+                        └─────────────────┘
+```
 
 ## Quick Start
 
@@ -48,61 +73,118 @@ Add to `~/.claude/mcp.json`:
 
 Run `/mcp` to verify the twitch server is connected.
 
+## Usage Examples
+
+Once configured, ask your AI assistant:
+
+| Task | Example Prompt |
+|------|----------------|
+| **Chat** | "Send 'Hello everyone!' to my chat" |
+| **Moderation** | "Ban user spammer123 for 1 hour" |
+| **Polls** | "Create a poll: What game next? Options: Minecraft, Fortnite, Valorant" |
+| **Predictions** | "Start a prediction: Will we beat the boss?" |
+| **Stream Info** | "Update my stream title to 'Late Night Coding'" |
+| **Clips** | "Create a clip of the last 30 seconds" |
+| **Raids** | "Raid xQc's channel" |
+| **Shoutouts** | "Give a shoutout to ninja" |
+
 ## Available Tools
 
-### Chat
+### Chat (7 tools)
 - `twitch_send_chat_message` - Send a message to chat
 - `twitch_get_chatters` - Get list of users in chat
 - `twitch_send_announcement` - Send an announcement
 - `twitch_send_shoutout` - Shoutout another broadcaster
-- `twitch_get_chat_settings` - Get chat settings
-- `twitch_update_chat_settings` - Update chat settings
+- `twitch_get_chat_settings` / `twitch_update_chat_settings`
+- `twitch_get_user_emotes`
 
-### Streams
+### Streams (3 tools)
 - `twitch_get_streams` - Get live streams
 - `twitch_get_followed_streams` - Get followed live streams
 - `twitch_create_stream_marker` - Create a stream marker
 
-### Channels
-- `twitch_get_channel_info` - Get channel information
-- `twitch_modify_channel_info` - Update title, game, etc.
-- `twitch_get_channel_followers` - Get followers
+### Channels (8 tools)
+- `twitch_get_channel_info` / `twitch_modify_channel_info`
+- `twitch_get_channel_followers`
 - `twitch_get_vips` / `twitch_add_vip` / `twitch_remove_vip`
+- `twitch_get_channel_editors`
+- `twitch_get_followed_channels`
 
-### Clips
-- `twitch_create_clip` - Create a clip
-- `twitch_get_clips` - Get clips
-
-### Polls & Predictions
-- `twitch_create_poll` / `twitch_get_polls` / `twitch_end_poll`
-- `twitch_create_prediction` / `twitch_get_predictions` / `twitch_end_prediction`
-
-### Moderation
+### Moderation (18 tools)
 - `twitch_ban_user` / `twitch_unban_user`
 - `twitch_warn_user`
 - `twitch_delete_chat_messages`
 - `twitch_get_moderators` / `twitch_add_moderator` / `twitch_remove_moderator`
-- `twitch_get_blocked_terms` / `twitch_add_blocked_term`
+- `twitch_get_banned_users`
+- `twitch_get_blocked_terms` / `twitch_add_blocked_term` / `twitch_remove_blocked_term`
 - `twitch_get_shield_mode_status` / `twitch_update_shield_mode`
+- `twitch_get_automod_settings` / `twitch_update_automod_settings`
+- And more...
 
-### Channel Points
-- `twitch_get_custom_rewards` / `twitch_create_custom_reward` / `twitch_update_custom_reward` / `twitch_delete_custom_reward`
-- `twitch_get_redemptions` / `twitch_update_redemption_status`
+### Polls & Predictions (6 tools)
+- `twitch_create_poll` / `twitch_get_polls` / `twitch_end_poll`
+- `twitch_create_prediction` / `twitch_get_predictions` / `twitch_end_prediction`
 
-### And More...
-- Ads, Analytics, Bits, Charity, EventSub, Games, Goals, Guest Star, Hype Train, Raids, Schedule, Search, Subscriptions, Teams, Users, Videos, Whispers
+### Channel Points (6 tools)
+- `twitch_get_custom_rewards` / `twitch_create_custom_reward`
+- `twitch_update_custom_reward` / `twitch_delete_custom_reward`
+- `twitch_get_custom_reward_redemption` / `twitch_update_redemption_status`
 
-## Usage Examples
+### Clips (2 tools)
+- `twitch_create_clip` - Create a clip
+- `twitch_get_clips` - Get clips
 
-Ask Claude Code:
-- "Send a chat message saying hello"
-- "Create a poll asking what game to play next"
-- "Get the list of chatters"
-- "Start a raid to xQc"
-- "Create a clip"
-- "Update my stream title to 'Coding Session'"
+### And 60+ More Tools
+- **Ads** - Commercial breaks, ad scheduling
+- **Analytics** - Extension and game analytics
+- **Bits** - Leaderboard, cheermotes
+- **Charity** - Campaign info, donations
+- **EventSub** - Real-time subscriptions
+- **Games** - Game info, top games
+- **Goals** - Creator goals
+- **Guest Star** - Session management
+- **Hype Train** - Event info
+- **Raids** - Start/cancel raids
+- **Schedule** - Stream scheduling
+- **Search** - Find channels and categories
+- **Subscriptions** - Subscriber info
+- **Teams** - Team info
+- **Users** - User profiles, blocks
+- **Videos** - VOD management
+- **Whispers** - Direct messages
 
-## Dependencies
+## EventSub Listener
 
-- twitch-sdk (API layer)
-- mcp (MCP protocol)
+For real-time events, use the included EventSub listener:
+
+```bash
+eventsub-listen
+```
+
+This creates a WebSocket connection to Twitch and can forward events to your application.
+
+## Development
+
+```bash
+# Clone the repo
+git clone https://github.com/ldraney/twitch-mcp
+cd twitch-mcp
+
+# Install dependencies
+poetry install
+
+# Run tests
+poetry run pytest
+
+# Run the server
+poetry run twitch-mcp
+```
+
+## Related Projects
+
+- [twitch-sdk](https://github.com/ldraney/twitch-sdk) - The underlying Twitch API SDK with Pydantic validation
+- [twitch-client](https://github.com/ldraney/twitch-client) - OAuth layer with automatic token refresh
+
+## License
+
+MIT License - see [LICENSE](LICENSE) for details.
