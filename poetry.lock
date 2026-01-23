@@ -1079,14 +1079,14 @@ pydantic-settings = ">=2.0,<3.0"
 
 [[package]]
 name = "twitch-sdk"
-version = "0.1.1"
+version = "0.1.2"
 description = "Complete Twitch Helix API SDK with Pydantic validation for 170+ endpoints"
 optional = false
 python-versions = "<4.0,>=3.10"
 groups = ["main"]
 files = [
-    {file = "twitch_sdk-0.1.1-py3-none-any.whl", hash = "sha256:0d39630f52dadf4d7231bbd661a3d343804f30f81bac1d3d85a6b05bdafe1af8"},
-    {file = "twitch_sdk-0.1.1.tar.gz", hash = "sha256:7f1b431e671a657b078d4eb270913b34128d8bee9e5c5841b0b3fa7bb9bbd77e"},
+    {file = "twitch_sdk-0.1.2-py3-none-any.whl", hash = "sha256:8c21d0e9e7287ddcf1e03520013f40b0c897c6e4ec4c47b9e71c1f8a19d735a3"},
+    {file = "twitch_sdk-0.1.2.tar.gz", hash = "sha256:b11bb54b1ed936869f7d5077e65a9c533e8555faee06e0c73721b404c18f9b1d"},
 ]
 
 [package.dependencies]
@@ -1228,4 +1228,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "7c1111952f6702cadd0e93fe21f18051b5dd0ed0a3794c6f700848d74de28011"
+content-hash = "c453dec98434555bae03413f6b29a8144aacac5a10d73c185acd4ae0a3f8ed19"

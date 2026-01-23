@@ -18,6 +18,7 @@ REQUIRED_VARS = [
 
 # Scopes needed for full twitch-mcp functionality
 SCOPES = [
+    # Channel management
     "channel:manage:broadcast",
     "channel:read:subscriptions",
     "channel:manage:polls",
@@ -27,15 +28,35 @@ SCOPES = [
     "channel:manage:raids",
     "channel:read:goals",
     "channel:read:hype_train",
+    # Channel points
+    "channel:read:redemptions",
+    "channel:manage:redemptions",
+    # VIP management
+    "channel:read:vips",
+    "channel:manage:vips",
+    # Channel editors
+    "channel:read:editors",
+    # Moderation
+    "moderation:read",
     "moderator:manage:announcements",
     "moderator:read:chatters",
     "moderator:manage:chat_messages",
     "moderator:manage:banned_users",
     "moderator:read:followers",
+    "moderator:read:blocked_terms",
+    "moderator:manage:blocked_terms",
+    "moderator:read:automod_settings",
+    "moderator:manage:automod_settings",
+    "moderator:read:shield_mode",
+    "moderator:manage:shield_mode",
+    # Bits
+    "bits:read",
+    # User
     "user:write:chat",
     "user:read:email",
-    "clips:edit",
     "user:read:follows",
+    # Clips
+    "clips:edit",
 ]
 
 ENV_TEMPLATE = """# Twitch MCP Credentials
@@ -220,10 +241,11 @@ def main():
             sys.exit(1)
         try:
             from twitch_sdk import TwitchSDK
+            from twitch_sdk.endpoints import users
             import asyncio
             async def test():
                 sdk = TwitchSDK()
-                r = await sdk.users.get_users()
+                r = await users.get_users(sdk.http, None)
                 await sdk.close()
                 return r
             r = asyncio.run(test())
