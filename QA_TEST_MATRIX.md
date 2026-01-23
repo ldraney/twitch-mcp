@@ -1,25 +1,27 @@
 # QA Test Matrix - Twitch MCP Tools
 
 Total Tools: 110
-**Test Date**: 2026-01-22
-**Test Method**: Direct SDK calls (MCP server not connected to Claude session)
+**Test Date**: 2026-01-22 (Updated)
+**Test Method**: Direct SDK calls + qa_test_runner.py
 
 ## Legend
-- Status: ⬜ Not tested | ✅ Passed | 🔧 Fixed (needs retest) | ⏭️ Skipped (missing scope/special requirement)
-- Auth: Required OAuth scopes
+- Status: ⬜ Not tested | ✅ Passed | 🔧 Fixed (needs retest) | ⏭️ Skipped (missing scope/special requirement) | ❌ Bug
 
 ## Summary
 
-| Category | Passed | Fixed | Skipped | Not Tested | Total |
-|----------|--------|-------|---------|------------|-------|
-| Public Endpoints | 9 | 1 | 0 | 0 | 10 |
-| Channel Read | 2 | 1 | 7 | 0 | 10 |
-| Live Stream Ops | 1 | 4 | 2 | 0 | 7 |
-| Channel Points | 0 | 0 | 4 | 2 | 6 |
-| EventSub | 1 | 0 | 5 | 3 | 9 |
-| Other | 0 | 4 | 10 | 37 | 51 |
+| Category | Passed | Skipped | Bug | Not Tested | Total |
+|----------|--------|---------|-----|------------|-------|
+| Public Endpoints | 14 | 0 | 0 | 1 | 15 |
+| Channel Management | 3 | 4 | 1 | 1 | 9 |
+| Chat & Moderation | 4 | 8 | 0 | 13 | 25 |
+| Channel Points | 0 | 4 | 0 | 2 | 6 |
+| Polls & Predictions | 0 | 0 | 0 | 6 | 6 |
+| Schedule | 0 | 1 | 2 | 3 | 6 |
+| EventSub | 1 | 5 | 0 | 3 | 9 |
+| Other | 3 | 6 | 1 | 24 | 34 |
 
-**SDK Bug Fixes**: All 10 SDK bugs fixed in commit `a5aedd5` (2026-01-22)
+**Current Pass Rate**: ~23% (25/110)
+**After scope expansion**: Expected ~40%+
 
 ---
 
@@ -42,7 +44,7 @@ Total Tools: 110
 
 | Tool | Status | Auth Scope | Notes |
 |------|--------|------------|-------|
-| twitch_get_bits_leaderboard | ⏭️ | bits:read | Missing scope |
+| twitch_get_bits_leaderboard | ⏭️ | bits:read | Missing scope - needs token refresh |
 | twitch_get_cheermotes | ✅ | - | Public endpoint - Got cheermotes |
 | twitch_get_extension_transactions | ⏭️ | - | Extension developer only |
 
@@ -50,10 +52,10 @@ Total Tools: 110
 
 | Tool | Status | Auth Scope | Notes |
 |------|--------|------------|-------|
-| twitch_get_custom_rewards | ⏭️ | channel:read:redemptions | Missing scope |
-| twitch_create_custom_reward | ⏭️ | channel:manage:redemptions | Missing scope |
-| twitch_update_custom_reward | ⏭️ | channel:manage:redemptions | Missing scope |
-| twitch_delete_custom_reward | ⏭️ | channel:manage:redemptions | Missing scope |
+| twitch_get_custom_rewards | ⏭️ | channel:read:redemptions | Needs token refresh |
+| twitch_create_custom_reward | ⏭️ | channel:manage:redemptions | Needs token refresh |
+| twitch_update_custom_reward | ⏭️ | channel:manage:redemptions | Needs token refresh |
+| twitch_delete_custom_reward | ⏭️ | channel:manage:redemptions | Needs token refresh |
 | twitch_get_custom_reward_redemption | ⬜ | channel:read:redemptions | Not tested |
 | twitch_update_redemption_status | ⬜ | channel:manage:redemptions | Not tested |
 
@@ -62,13 +64,13 @@ Total Tools: 110
 | Tool | Status | Auth Scope | Notes |
 |------|--------|------------|-------|
 | twitch_get_channel_info | ✅ | - | Public - Got channel: L_dray |
-| twitch_modify_channel_info | 🔧 | channel:manage:broadcast | Fixed: added `modify_channel_info` alias |
+| twitch_modify_channel_info | ⬜ | channel:manage:broadcast | Not tested (would modify) |
 | twitch_get_channel_followers | ✅ | moderator:read:followers | 12 followers |
-| twitch_get_followed_channels | ⬜ | user:read:follows | Not tested |
-| twitch_get_vips | ⏭️ | channel:read:vips | Missing scope |
+| twitch_get_followed_channels | ✅ | user:read:follows | **TESTED** - Works |
+| twitch_get_vips | ⏭️ | channel:read:vips | Missing scope - needs token refresh |
 | twitch_add_vip | ⏭️ | channel:manage:vips | Missing scope |
 | twitch_remove_vip | ⏭️ | channel:manage:vips | Missing scope |
-| twitch_get_channel_editors | ⏭️ | channel:read:editors | Missing scope |
+| twitch_get_channel_editors | ❌ | channel:read:editors | **SDK BUG**: 'str' object has no attribute 'model_dump' |
 
 ## Charity Module (2 tools)
 
@@ -81,11 +83,11 @@ Total Tools: 110
 
 | Tool | Status | Auth Scope | Notes |
 |------|--------|------------|-------|
-| twitch_send_chat_message | 🔧 | user:write:chat | Fixed: added `SendChatMessageRequest` alias |
+| twitch_send_chat_message | ⬜ | user:write:chat | Not tested (would spam) |
 | twitch_get_chat_settings | ✅ | - | Public - slow_mode: False |
 | twitch_update_chat_settings | ⬜ | moderator:manage:chat_settings | Not tested |
-| twitch_get_chatters | ⏭️ | moderator:read:chatters | Missing scope |
-| twitch_send_chat_announcement | 🔧 | moderator:manage:announcements | Fixed: added `send_announcement` alias |
+| twitch_get_chatters | ✅ | moderator:read:chatters | **TESTED** - Works |
+| twitch_send_chat_announcement | ⬜ | moderator:manage:announcements | Not tested (would spam) |
 | twitch_send_shoutout | ⬜ | moderator:manage:shoutouts | Not tested |
 | twitch_get_user_emotes | ⬜ | user:read:emotes | Not tested |
 
@@ -93,8 +95,8 @@ Total Tools: 110
 
 | Tool | Status | Auth Scope | Notes |
 |------|--------|------------|-------|
-| twitch_create_clip | ⏭️ | clips:edit | Missing scope |
-| twitch_get_clips | ⬜ | - | Public endpoint - Not tested |
+| twitch_create_clip | ⏭️ | clips:edit | Requires live stream |
+| twitch_get_clips | ✅ | - | **TESTED** - Public endpoint works |
 
 ## EventSub Module (9 tools)
 
@@ -121,7 +123,7 @@ Total Tools: 110
 
 | Tool | Status | Auth Scope | Notes |
 |------|--------|------------|-------|
-| twitch_get_goals | 🔧 | channel:read:goals | Fixed: added `get_goals` alias |
+| twitch_get_goals | ✅ | channel:read:goals | **TESTED** - Works (no active goals) |
 
 ## Guest Star Module (12 tools)
 
@@ -144,7 +146,7 @@ Total Tools: 110
 
 | Tool | Status | Auth Scope | Notes |
 |------|--------|------------|-------|
-| twitch_get_hype_train | 🔧 | channel:read:hype_train | Fixed: added `GetHypeTrainRequest` alias |
+| twitch_get_hype_train | ❌ | channel:read:hype_train | **DEPRECATED**: 410 Gone - Endpoint removed by Twitch |
 
 ## Moderation Module (18 tools)
 
@@ -152,13 +154,13 @@ Total Tools: 110
 |------|--------|------------|-------|
 | twitch_ban_user | ⬜ | moderator:manage:banned_users | Not tested |
 | twitch_unban_user | ⬜ | moderator:manage:banned_users | Not tested |
-| twitch_get_banned_users | ⏭️ | moderation:read | Missing scope |
+| twitch_get_banned_users | ✅ | moderation:read | **TESTED** - Works |
 | twitch_warn_user | ⬜ | moderator:manage:warnings | Not tested |
 | twitch_delete_chat_messages | ⬜ | moderator:manage:chat_messages | Not tested |
-| twitch_get_moderators | ⏭️ | moderation:read | Missing scope |
+| twitch_get_moderators | ⬜ | moderation:read | Not tested |
 | twitch_add_moderator | ⏭️ | channel:manage:moderators | Missing scope |
 | twitch_remove_moderator | ⏭️ | channel:manage:moderators | Missing scope |
-| twitch_get_blocked_terms | ⏭️ | moderator:read:blocked_terms | Missing scope |
+| twitch_get_blocked_terms | ⏭️ | moderator:read:blocked_terms | Missing scope - needs token refresh |
 | twitch_add_blocked_term | ⏭️ | moderator:manage:blocked_terms | Missing scope |
 | twitch_get_shield_mode_status | ⏭️ | moderator:read:shield_mode | Missing scope |
 | twitch_update_shield_mode | ⏭️ | moderator:manage:shield_mode | Missing scope |
@@ -173,7 +175,7 @@ Total Tools: 110
 
 | Tool | Status | Auth Scope | Notes |
 |------|--------|------------|-------|
-| twitch_create_poll | 🔧 | channel:manage:polls | Fixed: `PollChoice.id` now optional |
+| twitch_create_poll | ⬜ | channel:manage:polls | Not tested (would create) |
 | twitch_get_polls | ⬜ | channel:read:polls | Not tested (depends on create) |
 | twitch_end_poll | ⬜ | channel:manage:polls | Not tested (depends on create) |
 
@@ -181,7 +183,7 @@ Total Tools: 110
 
 | Tool | Status | Auth Scope | Notes |
 |------|--------|------------|-------|
-| twitch_create_prediction | 🔧 | channel:manage:predictions | Fixed: `PredictionOutcome.id/color` now optional |
+| twitch_create_prediction | ⬜ | channel:manage:predictions | Not tested (would create) |
 | twitch_get_predictions | ⬜ | channel:read:predictions | Not tested (depends on create) |
 | twitch_end_prediction | ⬜ | channel:manage:predictions | Not tested (depends on create) |
 
@@ -196,11 +198,11 @@ Total Tools: 110
 
 | Tool | Status | Auth Scope | Notes |
 |------|--------|------------|-------|
-| twitch_get_channel_schedule | 🔧 | - | Fixed: added `GetChannelScheduleRequest` alias |
+| twitch_get_channel_schedule | ⏭️ | - | 404 when no schedule exists (expected) |
 | twitch_update_channel_schedule | ⬜ | channel:manage:schedule | Not tested |
 | twitch_create_schedule_segment | ⬜ | channel:manage:schedule | Not tested |
 | twitch_delete_schedule_segment | ⬜ | channel:manage:schedule | Not tested |
-| twitch_get_schedule_icalendar | 🔧 | - | Fixed: added type safety for string response |
+| twitch_get_schedule_icalendar | ❌ | - | **SDK BUG**: 'str' object has no attribute 'model_dump' |
 | twitch_update_schedule_segment | ⬜ | channel:manage:schedule | Not tested |
 
 ## Search Module (2 tools)
@@ -208,7 +210,7 @@ Total Tools: 110
 | Tool | Status | Auth Scope | Notes |
 |------|--------|------------|-------|
 | twitch_search_categories | ✅ | - | Public - Found categories for "minecraft" |
-| twitch_search_channels | 🔧 | - | Fixed: empty string → None validator for `started_at` |
+| twitch_search_channels | ✅ | - | **TESTED** - Works (searched for "ninja") |
 
 ## Streams Module (3 tools)
 
@@ -229,7 +231,7 @@ Total Tools: 110
 
 | Tool | Status | Auth Scope | Notes |
 |------|--------|------------|-------|
-| twitch_get_channel_teams | ⬜ | - | Public endpoint - Not tested |
+| twitch_get_channel_teams | ✅ | - | **TESTED** - Public endpoint works |
 | twitch_get_teams | ✅ | - | Public - Found team: staff |
 
 ## Users Module (8 tools)
@@ -242,7 +244,7 @@ Total Tools: 110
 | twitch_block_user | ⬜ | user:manage:blocked_users | Not tested |
 | twitch_unblock_user | ⬜ | user:manage:blocked_users | Not tested |
 | twitch_get_user_extensions | ⬜ | user:read:broadcast | Not tested |
-| twitch_get_user_active_extensions | ⬜ | - | Not tested |
+| twitch_get_user_active_extensions | ✅ | - | **TESTED** - Works |
 | twitch_update_user_extensions | ⬜ | user:edit:broadcast | Not tested |
 
 ## Videos Module (2 tools)
@@ -260,9 +262,9 @@ Total Tools: 110
 
 ---
 
-## SDK Bugs Found & Fixed ✅
+## SDK Bugs Found
 
-All 10 bugs fixed in twitch-sdk commit `a5aedd5` (2026-01-22).
+### Fixed (10 bugs - commit `a5aedd5`)
 
 | Bug | Severity | File | Fix Applied |
 |-----|----------|------|-------------|
@@ -277,27 +279,31 @@ All 10 bugs fixed in twitch-sdk commit `a5aedd5` (2026-01-22).
 | get_goals missing | Medium | endpoints/goals.py | ✅ Added `get_goals` alias |
 | get_hype_train schema | Medium | schemas/hype_train.py | ✅ Added `GetHypeTrainRequest` alias |
 
-## Missing OAuth Scopes
+### New Bugs Found (3 bugs)
 
-The current token is missing these scopes needed for full testing:
-- `moderator:read:chatters`
+| Bug | Severity | Details |
+|-----|----------|---------|
+| get_schedule_icalendar | Medium | SDK tries to call `.model_dump()` on string response |
+| get_channel_editors | Medium | SDK tries to call `.model_dump()` on string response |
+| get_hype_train_events | N/A | **DEPRECATED by Twitch** - 410 Gone response |
+
+## Scopes Added to setup.py
+
+Added 13 new scopes for expanded testing:
+- `channel:read:redemptions`, `channel:manage:redemptions`
+- `channel:read:vips`, `channel:manage:vips`
 - `channel:read:editors`
-- `channel:read:vips` / `channel:manage:vips`
 - `moderation:read`
-- `moderator:read:blocked_terms` / `moderator:manage:blocked_terms`
-- `moderator:read:automod_settings`
-- `moderator:read:shield_mode` / `moderator:manage:shield_mode`
-- `clips:edit`
-- `channel:read:redemptions` / `channel:manage:redemptions`
-- `channel:read:subscriptions`
-- `channel:read:charity`
+- `moderator:read:blocked_terms`, `moderator:manage:blocked_terms`
+- `moderator:read:automod_settings`, `moderator:manage:automod_settings`
+- `moderator:read:shield_mode`, `moderator:manage:shield_mode`
 - `bits:read`
-- `channel:manage:moderators`
 
 ## Next Steps
 
-1. ~~**Fix SDK bugs**~~ ✅ All 10 bugs fixed (2026-01-22)
-2. **Retest fixed tools** - Run live API tests on 🔧 Fixed tools
-3. **Regenerate token** - Create new token with all required scopes
-4. **Full retest** - Run complete test suite with expanded scopes
-5. **App token support** - Add app access token for conduit endpoints
+1. ✅ **Scopes added to setup.py** - 13 new scopes
+2. ✅ **GitHub issues created** - #7 and #8
+3. ⏳ **Regenerate token** - Run `twitch-mcp-setup` to get new token with expanded scopes
+4. ⏳ **Fix SDK bugs** - get_schedule_icalendar, get_channel_editors (string response handling)
+5. ⏳ **Remove deprecated** - get_hype_train_events (410 Gone)
+6. ⏳ **Full retest** - With expanded scopes, expect 50%+ pass rate
