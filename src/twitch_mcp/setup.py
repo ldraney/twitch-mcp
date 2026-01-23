@@ -69,6 +69,46 @@ TWITCH_REFRESH_TOKEN={refresh_token}
 """
 
 
+def generate_mcp_json(client_id: str, client_secret: str, access_token: str, refresh_token: str) -> Path:
+    """Generate local .mcp.json with credentials baked in."""
+    # Detect if we're in a poetry project (has pyproject.toml with poetry)
+    pyproject = Path.cwd() / "pyproject.toml"
+    use_poetry = pyproject.exists() and "poetry" in pyproject.read_text()
+
+    if use_poetry:
+        command = "poetry"
+        args = ["run", "twitch-mcp"]
+        cwd = "."
+    else:
+        # PyPI install - use uvx
+        command = "uvx"
+        args = ["twitch-mcp"]
+        cwd = None
+
+    server_config = {
+        "command": command,
+        "args": args,
+        "env": {
+            "TWITCH_CLIENT_ID": client_id,
+            "TWITCH_CLIENT_SECRET": client_secret,
+            "TWITCH_ACCESS_TOKEN": access_token,
+            "TWITCH_REFRESH_TOKEN": refresh_token,
+        }
+    }
+
+    if cwd:
+        server_config["cwd"] = cwd
+
+    mcp_config = {"mcpServers": {"twitch": server_config}}
+
+    mcp_path = Path.cwd() / ".mcp.json"
+    with open(mcp_path, "w") as f:
+        json.dump(mcp_config, f, indent=2)
+    mcp_path.chmod(0o600)
+
+    return mcp_path
+
+
 def post_request(url: str, data: dict) -> dict:
     """Make a POST request and return JSON response."""
     encoded = urlencode(data).encode()
@@ -204,13 +244,32 @@ STEP 1: Create a Twitch App (if you haven't already)
 
     print(f"✅ Authorized! Token expires in {tokens.get('expires_in', '?')} seconds")
 
-    # Save
-    env_path = Path.home() / ".config" / "twitch-mcp" / ".env"
-    save_credentials(client_id, client_secret, tokens["access_token"], tokens["refresh_token"], env_path)
+    access_token = tokens["access_token"]
+    refresh_token = tokens["refresh_token"]
 
-    print(f"✅ Saved to: {env_path}")
-    print(f"\nSet in your shell:")
-    print(f"  export TWITCH_ENV_FILE={env_path}")
+    # Save to ~/.config/twitch-mcp/.env (backup)
+    env_path = Path.home() / ".config" / "twitch-mcp" / ".env"
+    save_credentials(client_id, client_secret, access_token, refresh_token, env_path)
+    print(f"✅ Saved backup to: {env_path}")
+
+    # Generate local .mcp.json for Claude Code
+    mcp_path = generate_mcp_json(client_id, client_secret, access_token, refresh_token)
+    print(f"✅ Generated: {mcp_path}")
+
+    # Detect command used
+    pyproject = Path.cwd() / "pyproject.toml"
+    use_poetry = pyproject.exists() and "poetry" in pyproject.read_text()
+    cmd = "poetry run twitch-mcp" if use_poetry else "uvx twitch-mcp"
+
+    print(f"""
+╔══════════════════════════════════════════════════════════════════╗
+║  Setup complete! Restart Claude Code to use twitch-mcp.          ║
+╚══════════════════════════════════════════════════════════════════╝
+
+Your .mcp.json is configured to run: {cmd}
+
+Run /mcp in Claude Code to verify the twitch server is connected.
+""")
 
     return True
 

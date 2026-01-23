@@ -20,3 +20,6 @@ build/
 
 # Environment variables
 .env
+
+# Local MCP config (contains credentials)
+.mcp.json

@@ -47,28 +47,32 @@ def print_credential_error(missing: list[str]):
     """Print a helpful error message for missing credentials."""
     print("""
 ╔══════════════════════════════════════════════════════════════════╗
-║  ERROR: Missing Twitch API credentials                           ║
+║  Missing Twitch credentials                                      ║
 ╚══════════════════════════════════════════════════════════════════╝
 """, file=sys.stderr)
 
     print(f"Missing: {', '.join(missing)}\n", file=sys.stderr)
 
-    print("""To fix this, either:
+    print("""Run this command to set up:
 
-  1. Run interactive setup:
-     $ twitch-mcp-setup
+    poetry run twitch-mcp-setup
 
-  2. Set environment variables:
-     $ export TWITCH_CLIENT_ID=xxx
-     $ export TWITCH_CLIENT_SECRET=xxx
-     $ export TWITCH_ACCESS_TOKEN=xxx
-     $ export TWITCH_REFRESH_TOKEN=xxx
+This will:
+  1. Guide you to create a Twitch app at dev.twitch.tv
+  2. Run OAuth to get your tokens
+  3. Generate .mcp.json for Claude Code
 
-  3. Use an env file (in your MCP config):
-     "env": {"TWITCH_ENV_FILE": "/path/to/.env"}
+Then restart Claude Code.
+
+────────────────────────────────────────────────────────────────────
+Alternative: Set environment variables manually
+
+  export TWITCH_CLIENT_ID=xxx
+  export TWITCH_CLIENT_SECRET=xxx
+  export TWITCH_ACCESS_TOKEN=xxx
+  export TWITCH_REFRESH_TOKEN=xxx
 
 Get credentials at: https://dev.twitch.tv/console/apps
-Generate tokens at: https://twitchtokengenerator.com/
 """, file=sys.stderr)
 
 

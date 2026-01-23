@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "twitch": {
+      "command": "poetry",
+      "args": ["run", "twitch-mcp"],
+      "cwd": ".",
+      "env": {
+        "TWITCH_CLIENT_ID": "YOUR_CLIENT_ID",
+        "TWITCH_CLIENT_SECRET": "YOUR_CLIENT_SECRET",
+        "TWITCH_ACCESS_TOKEN": "YOUR_ACCESS_TOKEN",
+        "TWITCH_REFRESH_TOKEN": "YOUR_REFRESH_TOKEN"
+      }
+    }
+  }
+}

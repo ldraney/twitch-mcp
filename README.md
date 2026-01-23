@@ -31,47 +31,36 @@ Turn your AI assistant into a Twitch streamer's best friend. This MCP server exp
 
 ## Quick Start
 
-### 1. Install
+### Option A: Install from PyPI
 
 ```bash
+# Install
 pip install twitch-mcp
+
+# Run setup (creates .mcp.json in current directory)
+twitch-mcp-setup
 ```
 
-### 2. Setup Credentials
-
-Create `~/.twitch-secrets/.env`:
+### Option B: Clone and Develop
 
 ```bash
-mkdir -p ~/.twitch-secrets
-cat > ~/.twitch-secrets/.env << 'EOF'
-TWITCH_CLIENT_ID=your_client_id
-TWITCH_CLIENT_SECRET=your_client_secret
-TWITCH_ACCESS_TOKEN=your_access_token
-TWITCH_REFRESH_TOKEN=your_refresh_token
-EOF
+# Clone and install
+git clone https://github.com/ldraney/twitch-mcp
+cd twitch-mcp
+poetry install
+
+# Run setup
+poetry run twitch-mcp-setup
 ```
 
-Get credentials from:
-- **Client ID/Secret**: [Twitch Developer Console](https://dev.twitch.tv/console/apps)
-- **Access/Refresh Tokens**: Use [Twitch CLI](https://dev.twitch.tv/docs/cli/) or an OAuth app
+### Setup Flow
 
-### 3. Configure Claude Code
+The setup command will:
+1. Guide you to create a Twitch app at [dev.twitch.tv](https://dev.twitch.tv/console/apps)
+2. Run OAuth device flow to get your tokens
+3. Generate `.mcp.json` with your credentials
 
-Add to `~/.claude/mcp.json`:
-
-```json
-{
-  "mcpServers": {
-    "twitch": {
-      "command": "twitch-mcp"
-    }
-  }
-}
-```
-
-### 4. Restart Claude Code
-
-Run `/mcp` to verify the twitch server is connected.
+Then restart Claude Code and run `/mcp` to verify the twitch server is connected.
 
 ## Usage Examples
 
