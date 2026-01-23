@@ -27,7 +27,6 @@ SCOPES = [
     "channel:read:predictions",
     "channel:manage:raids",
     "channel:read:goals",
-    "channel:read:hype_train",
     # Channel points
     "channel:read:redemptions",
     "channel:manage:redemptions",
