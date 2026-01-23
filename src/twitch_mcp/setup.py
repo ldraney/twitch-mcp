@@ -52,6 +52,7 @@ SCOPES = [
     "bits:read",
     # User
     "user:write:chat",
+    "user:read:chat",
     "user:read:email",
     "user:read:follows",
     # Clips
