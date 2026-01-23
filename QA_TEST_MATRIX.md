@@ -2,7 +2,7 @@
 
 Total Tools: 109
 **Test Date**: 2026-01-22
-**SDK Version**: twitch-sdk 0.1.4
+**SDK Version**: twitch-sdk 0.1.5
 **OAuth Scopes**: 30 scopes configured
 
 ## Legend
@@ -27,7 +27,7 @@ Total Tools: 109
 | Goals | 1 | 0 | 0 | 1 |
 | Schedule | 0 | 1 | 5 | 6 |
 | Teams | 1 | 0 | 1 | 2 |
-| EventSub | 1 | 5 | 3 | 9 |
+| EventSub | 7 | 0 | 2 | 9 |
 | Subscriptions | 0 | 1 | 1 | 2 |
 | Ads | 0 | 3 | 0 | 3 |
 | Analytics | 0 | 2 | 0 | 2 |
@@ -37,7 +37,7 @@ Total Tools: 109
 | Raids | 0 | 1 | 1 | 2 |
 | Whispers | 0 | 0 | 1 | 1 |
 
-**Pass Rate**: 26/109 (24%) - Core read operations verified working
+**Pass Rate**: 32/109 (29%) - Core read operations verified working
 
 ---
 
@@ -193,12 +193,12 @@ Total Tools: 109
 | twitch_get_eventsub_subscriptions | ✅ | - | Found 0 subs |
 | twitch_create_eventsub_subscription | ⬜ | - | Not tested |
 | twitch_delete_eventsub_subscription | ⬜ | - | Not tested |
-| twitch_get_conduits | ⏭️ | - | Requires app access token |
-| twitch_create_conduit | ⏭️ | - | Requires app access token |
-| twitch_update_conduit | ⏭️ | - | Requires app access token |
-| twitch_delete_conduit | ⏭️ | - | Requires app access token |
-| twitch_get_conduit_shards | ⏭️ | - | Requires app access token |
-| twitch_update_conduit_shards | ⬜ | - | Not tested |
+| twitch_get_conduits | ✅ | - | Works (app token via SDK 0.1.5) |
+| twitch_create_conduit | ✅ | - | Works (app token via SDK 0.1.5) |
+| twitch_update_conduit | ✅ | - | Works (app token via SDK 0.1.5) |
+| twitch_delete_conduit | ✅ | - | Works (app token via SDK 0.1.5) |
+| twitch_get_conduit_shards | ✅ | - | Works (app token via SDK 0.1.5) |
+| twitch_update_conduit_shards | ✅ | - | Works (app token via SDK 0.1.5) |
 
 ## Subscriptions Module (2 tools)
 
@@ -292,6 +292,11 @@ Total Tools: 109
 ### v0.1.4
 - CheermoteTier.images: Fixed schema to use `dict[str, dict[str, dict[str, str]]]`
 
+### v0.1.5
+- Conduit endpoints now use app access tokens (client credentials flow)
+- Added `get_app_token()` to twitch-client for client credentials OAuth
+- Added `get_app()`, `post_app()`, `patch_app()`, `delete_app()` HTTP methods
+
 ## Removed Endpoints
 
 | Endpoint | Reason | Date |
@@ -300,12 +305,11 @@ Total Tools: 109
 
 ## Open Issues
 
-- **Issue #3**: Add app access token support for conduit endpoints
 - **Issue #4**: Full retest tracking
 
 ## Notes
 
 - Many tools are "Not tested" because they would modify state (create polls, ban users, etc.)
 - Affiliate/Partner features cannot be tested without that account status
-- Conduit endpoints require app access token (not user token)
+- Conduit endpoints use app access tokens automatically (fixed in SDK 0.1.5)
 - Schedule returns 404 when user has no schedule configured (expected behavior)
