@@ -7,6 +7,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Callable, Awaitable
 
+import httpx
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
 from mcp.types import Tool, TextContent
@@ -18,6 +19,48 @@ REQUIRED_VARS = [
     "TWITCH_ACCESS_TOKEN",
     "TWITCH_REFRESH_TOKEN",
 ]
+
+
+def fetch_credentials_from_backend() -> bool:
+    """Fetch Twitch credentials from Collaborative Story Stream backend.
+
+    Returns True if credentials were successfully fetched and set.
+    """
+    css_token = os.environ.get("CSS_TOKEN")
+    backend_url = os.environ.get("CSS_BACKEND_URL", "https://storystream.fly.dev")
+
+    if not css_token:
+        return False
+
+    try:
+        response = httpx.get(
+            f"{backend_url}/v1/credentials",
+            headers={"Authorization": f"Bearer {css_token}"},
+            timeout=10.0,
+        )
+        response.raise_for_status()
+        creds = response.json()
+
+        # Set environment variables for TwitchSDK
+        # Note: CLIENT_SECRET is required by TwitchCredentials but not used for API calls
+        # when we already have an access token. We use a placeholder value.
+        os.environ["TWITCH_CLIENT_ID"] = creds["twitch_client_id"]
+        os.environ["TWITCH_CLIENT_SECRET"] = creds.get("twitch_client_secret", "placeholder")
+        os.environ["TWITCH_ACCESS_TOKEN"] = creds["twitch_access_token"]
+        os.environ["TWITCH_REFRESH_TOKEN"] = creds["twitch_refresh_token"]
+
+        print(f"✓ Loaded Twitch credentials from {backend_url}", file=sys.stderr)
+        return True
+
+    except httpx.HTTPStatusError as e:
+        print(f"Backend auth failed: HTTP {e.response.status_code}", file=sys.stderr)
+        return False
+    except httpx.RequestError as e:
+        print(f"Backend auth failed: {e}", file=sys.stderr)
+        return False
+    except KeyError as e:
+        print(f"Backend response missing key: {e}", file=sys.stderr)
+        return False
 
 
 def load_env_file():
@@ -53,8 +96,15 @@ def print_credential_error(missing: list[str]):
 
     print(f"Missing: {', '.join(missing)}\n", file=sys.stderr)
 
-    print("""Run this command to set up:
+    print("""Option 1: Use Collaborative Story Stream (Recommended)
+────────────────────────────────────────────────────────────────────
+  1. Visit https://storystream.fly.dev and login with Twitch
+  2. Copy your CSS_TOKEN from the dashboard
+  3. Add to your .mcp.json:
+     "env": { "CSS_TOKEN": "css_live_xxx..." }
 
+Option 2: Run setup wizard
+────────────────────────────────────────────────────────────────────
     poetry run twitch-mcp-setup
 
 This will:
@@ -62,11 +112,8 @@ This will:
   2. Run OAuth to get your tokens
   3. Generate .mcp.json for Claude Code
 
-Then restart Claude Code.
-
+Option 3: Set environment variables manually
 ────────────────────────────────────────────────────────────────────
-Alternative: Set environment variables manually
-
   export TWITCH_CLIENT_ID=xxx
   export TWITCH_CLIENT_SECRET=xxx
   export TWITCH_ACCESS_TOKEN=xxx
@@ -76,8 +123,9 @@ Get credentials at: https://dev.twitch.tv/console/apps
 """, file=sys.stderr)
 
 
-# Load env file before any SDK initialization
-load_env_file()
+# Try backend auth first (Collaborative Story Stream), then fall back to env file
+if not fetch_credentials_from_backend():
+    load_env_file()
 
 # Import SDK after env is loaded
 from twitch_sdk import TwitchSDK

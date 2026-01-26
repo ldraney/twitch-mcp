@@ -31,7 +31,32 @@ Turn your AI assistant into a Twitch streamer's best friend. This MCP server exp
 
 ## Quick Start
 
-### Option A: Install from PyPI
+### Option A: Collaborative Story Stream (Easiest)
+
+If you're using [Collaborative Story Stream](https://storystream.fly.dev), authentication is automatic:
+
+1. Visit [storystream.fly.dev](https://storystream.fly.dev) and login with Twitch
+2. Copy your `CSS_TOKEN` from the dashboard
+3. Add to your `.mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "twitch": {
+      "command": "poetry",
+      "args": ["run", "twitch-mcp"],
+      "cwd": "/path/to/twitch-mcp",
+      "env": {
+        "CSS_TOKEN": "css_live_xxx..."
+      }
+    }
+  }
+}
+```
+
+4. Restart Claude Code and run `/mcp` to verify connection
+
+### Option B: Install from PyPI
 
 ```bash
 # Install
@@ -41,7 +66,7 @@ pip install twitch-mcp
 twitch-mcp-setup
 ```
 
-### Option B: Clone and Develop
+### Option C: Clone and Develop
 
 ```bash
 # Clone and install
@@ -53,9 +78,9 @@ poetry install
 poetry run twitch-mcp-setup
 ```
 
-### Setup Flow
+### Manual Setup Flow
 
-The setup command will:
+The setup command (Options B/C) will:
 1. Guide you to create a Twitch app at [dev.twitch.tv](https://dev.twitch.tv/console/apps)
 2. Run OAuth device flow to get your tokens
 3. Generate `.mcp.json` with your credentials
