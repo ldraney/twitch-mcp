@@ -1,0 +1,19 @@
+# Exclude development files from mcpb bundle
+.git/
+.github/
+.claude/
+.pytest_cache/
+.venv/
+__pycache__/
+*.pyc
+.env
+.env.*
+tests/
+dist/
+src/
+scripts/
+issues/
+*.md
+!manifest.json
+poetry.lock
+pyproject.toml

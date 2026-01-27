@@ -1,0 +1,47 @@
+name: Release MCPB
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+jobs:
+  build-mcpb:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install mcpb CLI
+        run: npm install -g @anthropic-ai/mcpb
+
+      - name: Prepare bundle directory
+        run: |
+          mkdir -p bundle
+          cp manifest.json bundle/
+          cp mcpb_server.py bundle/
+          cp mcpb_pyproject.toml bundle/pyproject.toml
+
+      - name: Validate manifest
+        run: mcpb validate bundle/manifest.json
+
+      - name: Pack bundle
+        run: |
+          mkdir -p dist
+          mcpb pack bundle dist/twitch-mcp.mcpb
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: twitch-mcp-mcpb
+          path: dist/twitch-mcp.mcpb
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: dist/twitch-mcp.mcpb
+          generate_release_notes: true

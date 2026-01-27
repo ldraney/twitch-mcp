@@ -1,0 +1,30 @@
+{
+  "manifest_version": "0.4",
+  "name": "twitch-mcp",
+  "display_name": "Twitch MCP",
+  "version": "0.2.0",
+  "description": "Twitch API integration for Claude - chat, streams, moderation, polls, and 100+ tools",
+  "author": {
+    "name": "ldraney"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ldraney/twitch-mcp.git"
+  },
+  "server": {
+    "type": "uv",
+    "entry_point": "mcpb_server.py",
+    "mcp_config": {
+      "command": "uv",
+      "args": ["run", "python", "${__dirname}/mcpb_server.py"]
+    }
+  },
+  "compatibility": {
+    "platforms": ["darwin", "linux", "win32"],
+    "runtimes": {
+      "python": ">=3.10"
+    }
+  },
+  "keywords": ["twitch", "streaming", "chat", "api"],
+  "license": "MIT"
+}
